@@ -1,0 +1,45 @@
+# -*- coding: utf-8 -*-
+'''
+utils_exception.py
+
+
+'''
+
+# custom exception
+
+class ConfigError(Exception):
+	'''
+	api server url, appkey, secret not properly configured.
+	'''
+	pass
+
+class APIError(Exception):
+	'''
+	general api error
+	'''
+	# return_msg:str
+	# return_code:int
+	pass
+
+class AuthenticationError(APIError):
+	'''
+	authenticate failed
+	usually it occurred when invalid token is used.
+	'''
+	# '인증에 실패했습니다[8005:Token이 유효하지 않습니다]'
+	# 3
+	pass
+
+'''
+usage:
+	if some error happens:
+		raise AuthenticationError("Failed to get token")
+		raise APIError(f"API call failed: {jr.get('return_code')}-{jr.get('return_msg')}")
+
+if __name__ == '__main__'
+	try:
+		GetCashBalance()
+	except AuthenticationError as e:
+		print(e)..
+
+'''
