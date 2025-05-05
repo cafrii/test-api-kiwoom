@@ -2,3 +2,4 @@ _venv/
 .env
 _draft/
 __pycache__/
+.kiwoom_env

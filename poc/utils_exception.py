@@ -13,7 +13,7 @@ class ConfigError(Exception):
 	'''
 	pass
 
-class APIError(Exception):
+class ApiError(Exception):
 	'''
 	general api error
 	'''
@@ -21,7 +21,7 @@ class APIError(Exception):
 	# return_code:int
 	pass
 
-class AuthenticationError(APIError):
+class AuthenticationError(ApiError):
 	'''
 	authenticate failed
 	usually it occurred when invalid token is used.
@@ -34,7 +34,7 @@ class AuthenticationError(APIError):
 usage:
 	if some error happens:
 		raise AuthenticationError("Failed to get token")
-		raise APIError(f"API call failed: {jr.get('return_code')}-{jr.get('return_msg')}")
+		raise ApiError(f"API call failed: {jr.get('return_code')}-{jr.get('return_msg')}")
 
 if __name__ == '__main__'
 	try:
