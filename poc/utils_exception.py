@@ -17,6 +17,10 @@ class ApiError(Exception):
 	'''
 	general api error
 	'''
+	# def __init__(msg):
+	# 	msg = f'API Error, {msg}'
+	# 	super().__init__(msg)
+
 	# return_msg:str
 	# return_code:int
 	pass
