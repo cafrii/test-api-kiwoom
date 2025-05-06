@@ -160,7 +160,7 @@ Body: {
     "return_msg": "정상적으로 처리되었습니다",
     "token_type": "Bearer",
     "return_code": 0,
-    "token": "qmoOCBHVMnl5J3m0hLLPa8O1h7K07uq6PUnOWxW46ibtJdoihkjRdCcsoHJEr76ka_rn7YeqiyKlCLL2i75vgg"
+    "token": "<token-data>"
 }
 '''
 
