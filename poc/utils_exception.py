@@ -13,6 +13,11 @@ class ConfigError(Exception):
 	'''
 	pass
 
+class ArgumentError(Exception):
+	'''
+	'''
+	pass
+
 class ApiError(Exception):
 	'''
 	general api error
@@ -47,3 +52,6 @@ if __name__ == '__main__'
 		print(e)..
 
 '''
+
+class DateKeyError(ApiError):
+	pass

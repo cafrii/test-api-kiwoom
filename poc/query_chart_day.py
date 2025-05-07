@@ -10,104 +10,104 @@ import requests
 import json
 import time
 from imports import *
+from query_chart_base import RequestDailyChart, IsValidDt
 
 
+# # 주식일봉차트조회요청
+# def fn_ka10081(api_id:str, token:str, stk_cd:str=None, base_dt:str=None, **kwargs):
+# 	'''
+# 	주식일봉차트조회요청
+# 	지정한 날짜부터 과거의 데이터 조회
+# 	한번 요청 시 600일 분량의 데이터가 전달됨.
 
-# 주식일봉차트조회요청
-def fn_ka10081(token, stk_cd:str=None, base_dt:str=None, **kwargs):
-	'''
-	주식일봉차트조회요청
-	지정한 날짜부터 과거의 일봉 데이터 조회
-	한번 요청 시 600일 분량의 데이터가 전달됨.
+# 	반복 요청을 자체적으로 수행할 것인지, 호출자가 알아서 할 것인지 미정.
+# 	리턴할 데이터 형태도 미정.
 
-	반복 요청을 자체적으로 수행할 것인지, 호출자가 알아서 할 것인지 미정.
-	리턴할 데이터 형태도 미정.
+# 	Args:
+# 		token: 접근 토큰
+# 		stk_cd:str - stock code. 종목코드. 필수 인자.
+# 		base_dt:str - base date. 기준일자, 'YYYYMMDD'. 필수 인자
+# 		kwargs:
+# 			upd_stkpc_tp - 수정주가구분 타입. 0 또는 1. default '1'
+# 			next_key - 연속조회용 키. default ''
+# 	Returns:
+# 		dictionary 객체 (response body 내용에 일부 수정 적용)
+# 	'''
 
-	Args:
-		token: 접근 토큰
-		stk_cd:str - stock code. 종목코드. 필수 인자.
-		base_dt:str - base date. 기준일자, 'YYYYMMDD'. 필수 인자
-		kwargs:
-			upd_stkpc_tp - 수정주가구분 타입. 0 또는 1. default '1'
-			next_key - 연속조회용 키. default ''
-	Returns:
-		dictionary 객체 (response body 내용에 일부 수정 적용)
-	'''
+# 	upd_stkpc_tp = kwargs.get('upd_stkpc_tp', '1')
+# 	next_key = kwargs.get('next_key', '')
+# 	cont_yn = 'Y' if next_key else 'N'
 
-	upd_stkpc_tp = kwargs.get('upd_stkpc_tp', '1')
-	next_key = kwargs.get('next_key', '')
-	cont_yn = 'Y' if next_key else 'N'
+# 	host = KIWOOM_API_HOST
+# 	endpoint = '/api/dostk/chart'
+# 	url =  host + endpoint
 
-	host = KIWOOM_API_HOST
-	endpoint = '/api/dostk/chart'
-	url =  host + endpoint
+# 	headers = {
+# 		'Content-Type': 'application/json;charset=UTF-8', # 컨텐츠타입
+# 		'authorization': f'Bearer {token}', # 접근토큰
+# 		'cont-yn': cont_yn, # 연속조회여부
+# 		'next-key': next_key, # 연속조회키
+# 		'api-id': 'ka10081', # TR명
+# 	}
+# 	data = {
+# 		'stk_cd':  stk_cd,  # 종목코드 거래소별 종목코드 (KRX:039490,NXT:039490_NX,SOR:039490_AL)
+# 		'base_dt': base_dt, # 기준일자 YYYYMMDD
+# 		'upd_stkpc_tp': upd_stkpc_tp, # 수정주가구분 '0' or '1'
+# 	}
+# 	if cont_yn == 'Y' or len(next_key) > 0:
+# 		debug('---- request: header\n%s', headers)
 
-	headers = {
-		'Content-Type': 'application/json;charset=UTF-8', # 컨텐츠타입
-		'authorization': f'Bearer {token}', # 접근토큰
-		'cont-yn': cont_yn, # 연속조회여부
-		'next-key': next_key, # 연속조회키
-		'api-id': 'ka10081', # TR명
-	}
-	data = {
-		'stk_cd':  stk_cd,  # 종목코드 거래소별 종목코드 (KRX:039490,NXT:039490_NX,SOR:039490_AL)
-		'base_dt': base_dt, # 기준일자 YYYYMMDD
-		'upd_stkpc_tp': upd_stkpc_tp, # 수정주가구분 '0' or '1'
-	}
-	if cont_yn == 'Y' or len(next_key) > 0:
-		debug('---- request: header\n%s', headers)
+# 	resp = requests.post(url, headers=headers, json=data)
 
-	resp = requests.post(url, headers=headers, json=data)
+# 	debug('---- response')
+# 	debug('Code: %s', resp.status_code)
+# 	debug('Header: %s', resp.headers)
 
-	debug('---- response')
-	debug('Code: %s', resp.status_code)
-	debug('Header: %s', resp.headers)
+# 	rh = resp.headers
+# 	next_key = None
+# 	if rh.get('cont-yn') == 'Y' and rh.get('next-key'):
+# 		debug('there are more data')
+# 		next_key = rh.get('next-key')
 
-	rh = resp.headers
-	next_key = None
-	if rh.get('cont-yn') == 'Y' and rh.get('next-key'):
-		debug('there are more data')
-		next_key = rh.get('next-key')
+# 	# debug('Body: %s', resp.json())
+# 	jr = resp.json()
 
-	# debug('Body: %s', resp.json())
-	jr = resp.json()
+# 	if resp.status_code != 200:
+# 		error("wrong status_code %d", resp.status_code)
+# 		raise ApiError(f"API Error, wrong status_code {resp.status_code}")
 
-	if resp.status_code != 200:
-		error("wrong status_code %d", resp.status_code)
-		raise ApiError(f"API Error, wrong status_code {resp.status_code}")
+# 	if next_key: # 연속 조회 여부는 이 dict 객체에 담아서 전달하도록 한다.
+# 		jr['next_key'] = next_key
+# 	return jr
 
-	if next_key: # 연속 조회 여부는 이 dict 객체에 담아서 전달하도록 한다.
-		jr['next_key'] = next_key
-	return jr
-
-#export
-def IsValidDt(dt:str) -> bool:
-	return ( isinstance(dt, str) and
-			len(dt) == 8 and
-			1900 <= int(dt[:4]) and # year
-			1 <= int(dt[4:6]) <= 12 and # month
-			1 <= int(dt[6:]) <= 31 ) # day
+# #export
+# def IsValidDt(dt:str) -> bool:
+# 	return ( isinstance(dt, str) and
+# 			len(dt) == 8 and
+# 			1900 <= int(dt[:4]) and # year
+# 			1 <= int(dt[4:6]) <= 12 and # month
+# 			1 <= int(dt[6:]) <= 31 ) # day
 
 #export
 def GetDayPoleChart(stk_cd:str, base_dt:str='', **kwargs) -> list[dict]:
 	'''
 	Get daily pole chart (candle stick?)
 	Args:
-		stock_code: 종목 코드. 문자열
-		date: 기준 날짜 (YYYYMMDD)
+		- stock_code: 종목 코드. 문자열
+		- base_dt: 기준 날짜 (YYYYMMDD)
 
 	Returns:
-		지정한 날짜를 기준으로 과거의 지정 종목의 일봉 차트 정보를 리턴.
-		list of python dictionary
-		날짜 역순으로 정렬되어 있을 것으로 가정함.
+		- 지정한 날짜를 기준으로 과거의 지정 종목의 일봉 차트 정보를 리턴.
+		- list of python dictionary
+		- 날짜 역순으로 정렬되어 있을 것으로 가정함.
 
 	Example:
-		chart = GetDayPoleChart('005930') # 가장 최근 자료.
-		chart = GetDayPoleChart('005930', '20250502') # 5월2일 부터 과거 자료.
-		chart = GetDayPoleChart('005930', '20250502', to_date='20250101') # 5월2일 부터 1월1일 까지의 자료
-		chart = GetDayPoleChart('005930', '20250502', days=1000) # 5월2일 부터 1000일 분량의 자료
+		- chart = GetDayPoleChart('005930') # 가장 최근 자료.
+		- chart = GetDayPoleChart('005930', '20250502') # 5월2일 부터 과거 자료.
+		- chart = GetDayPoleChart('005930', '20250502', to_date='20250101') # 5월2일 부터 1월1일 까지의 자료
+		- chart = GetDayPoleChart('005930', '20250502', days=1000) # 5월2일 부터 1000일 분량의 자료
 
-		# 구간이 명확하지 않은 경우에는 서버에서 전달 받은 기본 분량의 자료를 그대로 리턴. 현재 600 일 분량.
+		구간이 명확하지 않은 경우에는 서버에서 전달 받은 기본 분량의 자료를 그대로 리턴. 현재 600 일 분량.
 
 	Raises:
 		ConfigError:
@@ -158,7 +158,7 @@ def GetDayPoleChart(stk_cd:str, base_dt:str='', **kwargs) -> list[dict]:
 	for cnt in range(18):
 		debug("(%d) stk_cd: %s, base_dt: %s, num merged %d", cnt, stk_cd, base_dt, len(merged_chart))
 
-		jr = fn_ka10081(token, stk_cd, base_dt, **kwargs)
+		jr = RequestDailyChart(token, stk_cd, base_dt, **kwargs)
 
 		'''
 		보통 api 통신이 성공한 경우 다음과 같이 응답된다.
