@@ -221,7 +221,7 @@ response 로그 예시
 ...
 00:19:13 D query_chart_minute GetMinuteChart: (1) stk_cd: 005930, min_scope: 1, num merged 900
 00:19:13 D query_chart_base RequestChartData: ---- request: header
-{'Content-Type': 'application/json;charset=UTF-8', 'authorization': 'Bearer mMl2jXktuqccXyl1TuuczIgwVyCOFRiHKDKoPcYsd1-_xsjjxG48BWwIKakXSAOAlK4emxtXBQJYcnFIlQc_qg', 'cont-yn': 'Y', 'next-key': 'A0059302025043013040000010000', 'api-id': 'ka10080'}
+{'Content-Type': 'application/json;charset=UTF-8', 'authorization': 'Bearer <token>', 'cont-yn': 'Y', 'next-key': 'A0059302..', 'api-id': 'ka10080'}
 00:19:13 D urllib3.connectionpool _new_conn: Starting new HTTPS connection (1): api.kiwoom.com:443
 00:19:13 D urllib3.connectionpool _make_request: https://api.kiwoom.com:443 "POST /api/dostk/chart HTTP/1.1" 200 None
 
