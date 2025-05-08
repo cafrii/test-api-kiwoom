@@ -58,6 +58,48 @@ def fn_au10001(data:dict = None) -> dict:
 	return resp.json()
 
 
+# 접근토큰폐기
+def fn_au10002(token:str) -> dict:
+	'''
+	'''
+	KIWOOM_API_APPKEY = os.getenv("KIWOOM_API_APPKEY")
+	if not KIWOOM_API_APPKEY:
+		dotenv.load_dotenv()
+		KIWOOM_API_APPKEY = os.getenv("KIWOOM_API_APPKEY")
+
+	KIWOOM_API_SECRET = os.getenv("KIWOOM_API_SECRET")
+	if not (KIWOOM_API_APPKEY and KIWOOM_API_SECRET):
+		error('no api appkey or secret!')
+		raise ConfigError('no api appkey or secret!')
+		# return None
+
+	host = KIWOOM_API_HOST
+	endpoint = '/oauth2/revoke'
+	url =  host + endpoint
+
+	headers = {
+		'Content-Type': 'application/json;charset=UTF-8', # 컨텐츠타입
+	}
+	data = {
+		'appkey': KIWOOM_API_APPKEY,  # 앱키
+		'secretkey': KIWOOM_API_SECRET,  # 시크릿키
+		'token': token,  # 토큰
+	}
+	resp = requests.post(url, headers=headers, json=data)
+
+	debug('Code: %s', resp.status_code)
+	debug('Header: %s', resp.headers)
+	debug('Body: %s', resp.json())
+
+	if resp.status_code != 200:
+		error("status code %d", 200)
+		raise AuthenticationError(f'wrong status_code {resp.status_code}')
+
+	return resp.json()
+
+
+
+
 
 def load_token() -> str:
 	'''
@@ -74,7 +116,8 @@ def load_token() -> str:
 
 		token = os.getenv('KIWOOM_API_TOKEN')
 		expire_at = os.getenv('KIWOOM_API_EXPIRE_AT')
-		debug('token: %s.., expire:%s', token[:8], expire_at)
+		if token:
+			debug('token: %s.., expire:%s', token[:8], expire_at)
 
 	if token is None or expire_at is None:
 		info('no stored token info')
@@ -88,6 +131,31 @@ def load_token() -> str:
 
 	debug('valid stored token exist')
 	return token
+
+def remove_token_cache() -> bool:
+	'''
+	Returns
+		- True if cache is removed.
+		- False if no cache file exist.
+	'''
+	if not os.path.isfile(KIWOOM_TOKEN_ENV):
+		debug('no token cache')
+		return False
+
+	info('remove stored token data..')
+
+	# env_tmp = KIWOOM_TOKEN_ENV + '.tmp'
+	# with open(KIWOOM_TOKEN_ENV, "r") as fr:
+	# 	with open(env_tmp, "w") as fw:
+	# 		lines = fr.readlines()
+	# 		for line in lines:
+	# 			fw.write(line.replace('KIWOOM_API_', '# KIWOOM_API_'))
+	# import shutil
+	# shutil.move(env_tmp, KIWOOM_TOKEN_ENV)
+
+	# 현재는 이 토큰 저장 파일에는 토큰 외에는 저장되는 데이터가 없으니, 그냥 삭제해도 된다.
+	os.remove(KIWOOM_TOKEN_ENV)
+	return True
 
 
 # export
@@ -135,15 +203,54 @@ def GetToken(force_query = False) -> str:
 
 
 
+def RevokeToken() -> bool:
+	'''
+	Revoke token which is previously aquired.
+	Do nothing if no valid previous token exist.
+
+	Returns:
+		True if token is successfully revoked.
+		False if no valid token
+
+	Raises:
+		ConfigError:
+		AuthenticationError:
+
+	'''
+	token = load_token()
+	if not token:
+		debug('no valid token exist')
+		return False
+
+	jr = fn_au10002(token=token)
+
+	remove_token_cache()
+
+	# successfully revoked and cleaned.
+	return True
+
+
+
+
 # 실행 구간
 if __name__ == '__main__':
 	from utils_log import LogInit
 	LogInit()
+
+	import sys
 	try:
-		token = GetToken()
-		info('token: %s', token)
+		if len(sys.argv) >= 2 and sys.argv[1] == 'revoke':
+			if RevokeToken():
+				info('token revoked')
+			else:
+				info('no valid token')
+		else:
+			token = GetToken()
+			info('token: %s', token)
+
 	except Exception as e:
 		error('%s %s', e.__class__, e)
+		raise e
 
 
 
