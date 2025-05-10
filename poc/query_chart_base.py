@@ -57,7 +57,7 @@ def RequestChartData(token:str, api_id:str, stk_cd:str=None, **kwargs):
 
 	headers = {
 		'Content-Type': 'application/json;charset=UTF-8', # 컨텐츠타입
-		'authorization': f'Bearer {token}', # 접근토큰
+		# 'authorization': f'Bearer {token}', # 접근토큰
 		'cont-yn': cont_yn, # 연속조회여부
 		'next-key': next_key, # 연속조회키
 		'api-id': api_id, # TR명
@@ -84,11 +84,19 @@ def RequestChartData(token:str, api_id:str, stk_cd:str=None, **kwargs):
 	if cont_yn == 'Y' or len(next_key) > 0:
 		debug('---- request: header\n%s', headers)
 
+	# 주의: 헤더 내부의 token 정보가 로그 메시지로 표시되는 문제점들이 발생함.
+	#      그래서 민감정보는 post() 요청 바로 직전에 추가. 로깅을 허용하지 않도록 함.
+	#
+	headers['authorization'] = f'Bearer {token}' # 접근토큰
 	resp = requests.post(url, headers=headers, json=data)
 
 	debug('---- response')
 	debug('Code: %s', resp.status_code)
 	debug('Header: %s', resp.headers)
+
+	if resp.status_code != 200:
+		error("wrong status_code %d", resp.status_code)
+		raise ApiError(f"API Error, wrong status_code {resp.status_code}")
 
 	rh = resp.headers
 	next_key = None
@@ -98,10 +106,6 @@ def RequestChartData(token:str, api_id:str, stk_cd:str=None, **kwargs):
 
 	# debug('Body: %s', resp.json())
 	jr = resp.json()
-
-	if resp.status_code != 200:
-		error("wrong status_code %d", resp.status_code)
-		raise ApiError(f"API Error, wrong status_code {resp.status_code}")
 
 	if next_key: # 연속 조회 여부는 이 dict 객체에 담아서 전달하도록 한다.
 		jr['next_key'] = next_key
