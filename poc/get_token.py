@@ -12,6 +12,39 @@ from config import KIWOOM_API_HOST
 KIWOOM_TOKEN_ENV = "/tmp/.kiwoom_env"
 
 
+#---- 다른 모듈로 분리 필요한가?
+
+from bs4 import BeautifulSoup
+import html2text
+
+def ExtractMessageFromHtml(html_content):
+	'''
+	'''
+	soup = BeautifulSoup(html_content, 'html.parser')
+	# debug('soup: %s', soup)
+
+	# 모바일/웹 공통으로 핵심 콘텐츠가 들어 있는 영역만 추출 (예: id="main" 또는 class="content")
+	main_section = soup.find('div', {'id': 'main'}) or soup.find('div', {'class': 'content'})
+	if not main_section:
+		main_section = soup  # fallback to full soup
+	# debug('main section: %s', main_section)
+
+	# 텍스트만 정제 추출
+	text_maker = html2text.HTML2Text()
+	text_maker.ignore_links = True
+	text_maker.body_width = 0  # 줄 바꿈 방지
+	plain_text = text_maker.handle(str(main_section))
+
+	# 불필요한 공백 제거
+	lines = [line.strip() for line in plain_text.splitlines() if line.strip()]
+
+	# 핵심 정보만 추려냄 (예: 점검 시간, 서비스 재개 시점)
+	important_lines = [line for line in lines if any(keyword in line for keyword in ['점검', '서비스', '중단', '복구', '재개', '공지'])]
+
+	return '\n'.join(important_lines[:5])  # 상위 몇 줄만 반환
+
+
+
 
 # 접근토큰 발급
 def fn_au10001(data:dict = None) -> dict:
@@ -48,8 +81,27 @@ def fn_au10001(data:dict = None) -> dict:
 	# 4. 응답 상태 코드와 데이터 출력
 	debug('Code: %d', resp.status_code)
 	debug('Header: %s', resp.headers)
-	debug('Body: %s', resp.json())
-	# json.dumps(resp.json(), indent=4, ensure_ascii=False)
+
+	content_type = resp.headers.get('Content-Type', '')
+	if 'application/json' in content_type:
+		# 'Content-Type': 'application/json;charset=UTF-8',
+		debug('Body: %s', resp.json())
+		json.dumps(resp.json(), indent=4, ensure_ascii=False)
+
+	elif 'text/html' in content_type:
+		# 'Content-Type': 'text/html',
+
+		# 시스템 점검과 같은 메시지일 가능성이 매우 크다.
+		debug('apparent_encoding: %s', resp.apparent_encoding)
+		resp.encoding = resp.apparent_encoding
+		# print(resp.text)
+		msgs = ExtractMessageFromHtml(resp.text)
+		debug('server messages: %s', msgs)
+		# return {}
+		raise ApiMaintenanceException(msgs)
+
+	else:
+		raise ApiMaintenanceException(f'unknown reason')
 
 	if resp.status_code != 200:
 		error("status code %d", 200)

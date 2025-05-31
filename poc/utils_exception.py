@@ -55,3 +55,10 @@ if __name__ == '__main__'
 
 class DateKeyError(ApiError):
 	pass
+
+
+class ApiMaintenanceException(Exception):
+	'''
+	api server maintenance exception
+	'''
+	pass

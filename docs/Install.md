@@ -27,12 +27,13 @@ $ deactivate
 이 리포지토리의 코드를 실행하기 위해 필요한 패키지를 설명합니다.
 
 - requests
-
 - dotenv
+- pandas
+- beautifulsoup4 html2text
 
+<br>
+한번에 다 설치하기
 
-
-- 한번에 다 설치하기
 ```
-pip install -U requests dotenv
+pip install -U requests dotenv pandas beautifulsoup4 html2text
 ```
